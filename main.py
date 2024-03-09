@@ -144,7 +144,7 @@ class RequestsPlugin(PluginBase):
         # Register plugin
         self.register(
             plugin_name=self.lm.get("plugin.name"),
-            github_repo="https://github.com/Core447/Requests",
+            github_repo="https://github.com/StreamController/Requests",
             plugin_version="1.0.0",
             app_version="1.0.0-alpha"
         )
