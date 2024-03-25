@@ -81,7 +81,7 @@ class GetRequest(ActionBase):
             deck_controller=deck_controller, page=page, coords=coords, plugin_base=plugin_base)
         
     def on_ready(self):
-        self.set_media(image=Image.open(os.path.join(self.plugin_base.PATH, "assets", "http.png")), size=0.8)
+        self.set_media(media_path=os.path.join(self.plugin_base.PATH, "assets", "http.png"), size=0.8)
 
     def get_config_rows(self) -> list:
         self.url_entry = Adw.EntryRow(title="URL")
