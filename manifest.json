@@ -3,5 +3,6 @@
     "thumbnail": "store/Thumbnail.png",
     "id": "com_core447_Requests",
     "name": "Requests",
-    "description": "Send HTTP requests to control smart devices."
+    "description": "Send HTTP requests to control smart devices.",
+    "short-description": "Send network requests"
 }
