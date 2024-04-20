@@ -139,7 +139,7 @@ class GetRequest(ActionBase):
             self.show_error(duration=1)
 
         try:
-            response = requests.get(url=url, headers=headers)
+            response = requests.get(url=url, headers=json.loads(headers))
             j = None
             try:
                 j = json.loads(response.text)
