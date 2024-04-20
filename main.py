@@ -87,6 +87,7 @@ class GetRequest(ActionBase):
 
     def get_config_rows(self) -> list:
         self.url_entry = Adw.EntryRow(title="URL")
+        self.headers_entry = Adw.EntryRow(title="Header (json)")
         self.keys_entry = Adw.EntryRow(title="Json Keys")
         self.auto_fetch_spinner = Adw.SpinRow.new_with_range(step=1, min=0, max=3600)
         self.auto_fetch_spinner.set_title("Auto Fetch (s)")
@@ -96,14 +97,20 @@ class GetRequest(ActionBase):
 
         # Connect signals
         self.url_entry.connect("notify::text", self.on_url_changed)
+        self.headers_entry.connect("notify::text", self.on_headers_changed)
         self.keys_entry.connect("notify::text", self.on_keys_changed)
         self.auto_fetch_spinner.connect("notify::value", self.on_auto_fetch_changed)
 
-        return [self.url_entry, self.keys_entry, self.auto_fetch_spinner]
+        return [self.url_entry, self.headers_entry, self.keys_entry, self.auto_fetch_spinner]
     
     def on_url_changed(self, entry, *args):
         settings = self.get_settings()
         settings["url"] = entry.get_text()
+        self.set_settings(settings)
+
+    def on_headers_changed(self, entry, *args):
+        settings = self.get_settings()
+        settings["headers"] = entry.get_text()
         self.set_settings(settings)
 
     def on_keys_changed(self, entry, *args):
@@ -119,17 +126,20 @@ class GetRequest(ActionBase):
     def load_config_defaults(self):
         settings = self.get_settings()
         self.url_entry.set_text(settings.get("url", "")) # Does not accept None
+        self.headers_entry.set_text(settings.get("headers", "{}"))
         self.keys_entry.set_text(settings.get("keys", "")) # Does not accept None
         self.auto_fetch_spinner.set_value(settings.get("auto_fetch", 0))
 
     def on_key_down(self):
-        url = self.get_settings().get("url")
+        settings = self.get_settings()
+        url = settings.get("url")
+        headers = settings.get("headers", {})
 
         if url in ["", None]:
             self.show_error(duration=1)
 
         try:
-            response = requests.get(url=url)
+            response = requests.get(url=url, headers=headers)
             j = None
             try:
                 j = json.loads(response.text)
