@@ -80,38 +80,93 @@ class GetRequest(ActionBase):
         super().__init__(action_id=action_id, action_name=action_name,
             deck_controller=deck_controller, page=page, coords=coords, plugin_base=plugin_base)
         
+        self.n_ticks = 0
+        
     def on_ready(self):
         self.set_media(media_path=os.path.join(self.plugin_base.PATH, "assets", "http.png"), size=0.8)
 
     def get_config_rows(self) -> list:
         self.url_entry = Adw.EntryRow(title="URL")
+        self.keys_entry = Adw.EntryRow(title="Json Keys")
+        self.auto_fetch_spinner = Adw.SpinRow.new_with_range(step=1, min=0, max=3600)
+        self.auto_fetch_spinner.set_title("Auto Fetch (s)")
+        self.auto_fetch_spinner.set_subtitle("0 to disable")
+
         self.load_config_defaults()
 
         # Connect signals
         self.url_entry.connect("notify::text", self.on_url_changed)
+        self.keys_entry.connect("notify::text", self.on_keys_changed)
+        self.auto_fetch_spinner.connect("notify::value", self.on_auto_fetch_changed)
 
-        return [self.url_entry]
+        return [self.url_entry, self.keys_entry, self.auto_fetch_spinner]
     
     def on_url_changed(self, entry, *args):
         settings = self.get_settings()
         settings["url"] = entry.get_text()
         self.set_settings(settings)
 
+    def on_keys_changed(self, entry, *args):
+        settings = self.get_settings()
+        settings["keys"] = entry.get_text()
+        self.set_settings(settings)
+
+    def on_auto_fetch_changed(self, spinner, *args):
+        settings = self.get_settings()
+        settings["auto_fetch"] = spinner.get_value()
+        self.set_settings(settings)
+
     def load_config_defaults(self):
-        self.url_entry.set_text(self.get_settings().get("url", "")) # Does not accept None
+        settings = self.get_settings()
+        self.url_entry.set_text(settings.get("url", "")) # Does not accept None
+        self.keys_entry.set_text(settings.get("keys", "")) # Does not accept None
+        self.auto_fetch_spinner.set_value(settings.get("auto_fetch", 0))
 
     def on_key_down(self):
         url = self.get_settings().get("url")
+        print("fetch")
 
         if url in ["", None]:
-            self.show_error(duration=2)
+            self.show_error(duration=1)
 
         try:
             response = requests.get(url=url)
-            # Here you can handle the response as needed
+            j = None
+            try:
+                j = json.loads(response.text)
+            except json.decoder.JSONDecodeError as e:
+                log.error(e)
+                self.show_error(duration=1)
+            if j is not None:
+                value = self.get_value(j, self.get_settings().get("keys", ""))
+                self.set_center_label(text=str(value))
         except Exception as e:
             log.error(e)
-            self.show_error(duration=2)
+            self.show_error(duration=1)
+
+    def get_value(self, j, keys):
+        for key in keys.split('.'):
+            if key not in j:
+                return None
+            j = j.get(key)
+
+        return j
+    
+    def get_custom_config_area(self):
+        return Gtk.Label(label="Separate keys with a period (example: key1.key2.key3)")
+    
+    def on_tick(self):
+        auto_fetch = self.get_settings().get("auto_fetch", 0)
+        if auto_fetch <= 0:
+            self.n_ticks = 0
+            return
+        
+        if self.n_ticks % auto_fetch == 0:
+            self.on_key_down()
+            self.n_ticks = 0
+        self.n_ticks += 1
+        
+
 
 
 class RequestsPlugin(PluginBase):
