@@ -124,7 +124,6 @@ class GetRequest(ActionBase):
 
     def on_key_down(self):
         url = self.get_settings().get("url")
-        print("fetch")
 
         if url in ["", None]:
             self.show_error(duration=1)
