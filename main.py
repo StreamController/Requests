@@ -1,4 +1,5 @@
 import json
+import threading
 from src.backend.PluginManager.ActionBase import ActionBase
 from src.backend.PluginManager.PluginBase import PluginBase
 from src.backend.PluginManager.ActionHolder import ActionHolder
@@ -131,6 +132,9 @@ class GetRequest(ActionBase):
         self.auto_fetch_spinner.set_value(settings.get("auto_fetch", 0))
 
     def on_key_down(self):
+        threading.Thread(target=self._on_key_down, daemon=True, name="get_request").start()
+
+    def _on_key_down(self):
         settings = self.get_settings()
         url = settings.get("url")
         headers = settings.get("headers", {})
@@ -139,7 +143,7 @@ class GetRequest(ActionBase):
             self.show_error(duration=1)
 
         try:
-            response = requests.get(url=url, headers=json.loads(headers))
+            response = requests.get(url=url, headers=json.loads(headers), timeout=2)
             j = None
             try:
                 j = json.loads(response.text)
