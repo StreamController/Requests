@@ -3,6 +3,8 @@ import threading
 from src.backend.PluginManager.ActionBase import ActionBase
 from src.backend.PluginManager.PluginBase import PluginBase
 from src.backend.PluginManager.ActionHolder import ActionHolder
+from src.backend.DeckManagement.InputIdentifier import Input
+from src.backend.PluginManager.ActionInputSupport import ActionInputSupport
 
 # Import gtk modules
 import gi
@@ -190,18 +192,28 @@ class RequestsPlugin(PluginBase):
         self.post_request_holder = ActionHolder(
             plugin_base=self,
             action_base=PostRequest,
-            action_id="com_core447_Requests::PostRequest",
+            action_id_suffix="PostRequest",
             action_name="Post Request",
-            icon=Gtk.Picture.new_for_filename(os.path.join(self.PATH, "assets", "POST.png"))
+            icon=Gtk.Picture.new_for_filename(os.path.join(self.PATH, "assets", "POST.png")),
+            action_support={
+                Input.Key: ActionInputSupport.SUPPORTED,
+                Input.Dial: ActionInputSupport.SUPPORTED,
+                Input.Touchscreen: ActionInputSupport.UNTESTED
+            }
         )
         self.add_action_holder(self.post_request_holder)
 
         self.get_request_holder = ActionHolder(
             plugin_base=self,
             action_base=GetRequest,
-            action_id="com_core447_Requests::GetRequest",
+            action_id_suffix="GetRequest",
             action_name="Get Request",
-            icon=Gtk.Picture.new_for_filename(os.path.join(self.PATH, "assets", "GET.png"))
+            icon=Gtk.Picture.new_for_filename(os.path.join(self.PATH, "assets", "GET.png")),
+            action_support={
+                Input.Key: ActionInputSupport.SUPPORTED,
+                Input.Dial: ActionInputSupport.SUPPORTED,
+                Input.Touchscreen: ActionInputSupport.UNTESTED
+            }
         )
         self.add_action_holder(self.get_request_holder)
 
