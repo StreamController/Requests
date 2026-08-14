@@ -1,0 +1,54 @@
+{
+    "plugin": {
+        "description": "Sends HTTP requests from a key: fire a POST at a webhook, or fetch a value with GET and show it on the key.",
+        "requirements": "Nothing. The target has to be reachable from this computer."
+    },
+    "actions": {
+        "PostRequest": {
+            "description": "Sends a POST request with a json body when the key is pressed. Use it for webhooks.",
+            "settings": {
+                "url": {
+                    "type": "string",
+                    "required": true,
+                    "description": "The address to post to.",
+                    "example": "https://example.com/api/webhook"
+                },
+                "json": {
+                    "type": "string",
+                    "default": "",
+                    "description": "The request body, as json written into a text field - so it is a string containing json, not a json object.",
+                    "example": "{\"action\": \"toggle\", \"id\": 3}"
+                }
+            }
+        },
+        "GetRequest": {
+            "description": "Sends a GET request, picks one value out of the json answer and shows it on the key. Set auto_fetch to turn it into a live readout.",
+            "settings": {
+                "url": {
+                    "type": "string",
+                    "required": true,
+                    "description": "The address to fetch.",
+                    "example": "https://api.example.com/status"
+                },
+                "headers": {
+                    "type": "string",
+                    "default": "{}",
+                    "description": "Request headers, as a string containing json. Use it for API tokens.",
+                    "example": "{\"Authorization\": \"Bearer abc123\"}"
+                },
+                "keys": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Which value of the json answer to show, as a path with periods between the keys. Empty shows the whole answer.",
+                    "example": "data.temperature"
+                },
+                "auto_fetch": {
+                    "type": "number",
+                    "default": 0,
+                    "description": "Fetch again every N seconds without pressing the key. 0 disables it.",
+                    "example": 60
+                }
+            }
+        }
+    }
+}
