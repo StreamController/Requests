@@ -91,6 +91,8 @@ class GetRequest(ActionBase):
         self.auto_fetch_spinner = Adw.SpinRow.new_with_range(step=1, min=0, max=3600)
         self.auto_fetch_spinner.set_title("Auto Fetch (s)")
         self.auto_fetch_spinner.set_subtitle("0 to disable")
+        self.timeout_spinner = Adw.SpinRow.new_with_range(step=1, min=2, max=60)
+        self.timeout_spinner.set_title("Request Timeout (s)")
 
         self.load_config_defaults()
 
@@ -99,8 +101,9 @@ class GetRequest(ActionBase):
         self.headers_entry.connect("notify::text", self.on_headers_changed)
         self.keys_entry.connect("notify::text", self.on_keys_changed)
         self.auto_fetch_spinner.connect("notify::value", self.on_auto_fetch_changed)
+        self.timeout_spinner.connect("notify::value", self.on_timeout_changed)
 
-        return [self.url_entry, self.headers_entry, self.keys_entry, self.auto_fetch_spinner]
+        return [self.url_entry, self.headers_entry, self.keys_entry, self.auto_fetch_spinner, self.timeout_spinner]
     
     def on_url_changed(self, entry, *args):
         settings = self.get_settings()
@@ -122,12 +125,18 @@ class GetRequest(ActionBase):
         settings["auto_fetch"] = spinner.get_value()
         self.set_settings(settings)
 
+    def on_timeout_changed(self, spinner, *args):
+        settings = self.get_settings()
+        settings["timeout"] = spinner.get_value()
+        self.set_settings(settings)
+
     def load_config_defaults(self):
         settings = self.get_settings()
         self.url_entry.set_text(settings.get("url", "")) # Does not accept None
         self.headers_entry.set_text(settings.get("headers", "{}"))
         self.keys_entry.set_text(settings.get("keys", "")) # Does not accept None
         self.auto_fetch_spinner.set_value(settings.get("auto_fetch", 0))
+        self.timeout_spinner.set_value(settings.get("timeout", 2))
 
     def on_key_down(self):
         threading.Thread(target=self._on_key_down, daemon=True, name="get_request").start()
@@ -136,12 +145,18 @@ class GetRequest(ActionBase):
         settings = self.get_settings()
         url = settings.get("url")
         headers = settings.get("headers", {})
+        timeout = settings.get("timeout", 2)
 
         if url in ["", None]:
             self.show_error(duration=1)
 
         try:
-            response = requests.get(url=url, headers=json.loads(headers), timeout=2)
+            json_headers = json.loads(headers)
+        except TypeError:
+            json_headers = {}
+
+        try:
+            response = requests.get(url=url, headers=json_headers, timeout=timeout)
             j = None
             try:
                 j = json.loads(response.text)
