@@ -1,5 +1,17 @@
 {
     "plugin.name": "Requests",
     "actions.post.url.title": "URL",
-    "actions.post.json.title": "JSON"
+    "actions.post.json.title": "JSON",
+    "actions.request.http_method.title": "HTTP-Methode",
+    "actions.request.body_type.title": "Body-Datentyp",
+    "actions.request.reply_type.title": "Antwort-Datentyp",
+    "actions.get.keys_entry.title": "Antwort-Schlüssel",
+    "convert.list_item.json": "JSON",
+    "convert.list_item.xml": "XML",
+    "convert.list_item.plain_text": "reiner Text",
+    "convert.list_item.ignore": "(ignorieren)",
+    "custom_config.keys_hint.label.json": "Trenne Schlüssel mit einem Punkt (Beispiel: key1.key2.key3)",
+    "custom_config.keys_hint.label.xml": "Schlüssel ist eine vereinfachte Version von XPath.\nNamespaces können bei Bedarf via '{..}' explizit angegeben, und mit '{}' explizit deaktiviert werden.\n(Beispiel: ./{http://example.com/some/namesapce}key1/key2)",
+    "custom_config.keys_hint.label.plain_text": "",
+    "custom_config.keys_hint.label.ignore": ""
 }

@@ -1,5 +1,17 @@
 {
     "plugin.name": "Requests",
     "actions.post.url.title": "URL",
-    "actions.post.json.title": "JSON"
+    "actions.post.json.title": "JSON",
+    "actions.request.http_method.title": "HTTP method",
+    "actions.request.body_type.title": "body data type",
+    "actions.request.reply_type.title": "reply data type",
+    "actions.get.keys_entry.title": "reply keys",
+    "convert.list_item.json": "JSON",
+    "convert.list_item.xml": "XML",
+    "convert.list_item.plain_text": "plain text",
+    "convert.list_item.ignore": "(ignore)",
+    "custom_config.keys_hint.label.json": "Separate keys with a period (example: key1.key2.key3)",
+    "custom_config.keys_hint.label.xml": "Keys are a simplified version of XPath.\nNamespaces can be set explizitlcy via '{..}', and disabled with '{}'.\n(Example: ./{http://example.com/some/namesapce}key1/key2)",
+    "custom_config.keys_hint.label.plain_text": "",
+    "custom_config.keys_hint.label.ignore": ""
 }

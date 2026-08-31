@@ -5,6 +5,7 @@ from src.backend.PluginManager.PluginBase import PluginBase
 from src.backend.PluginManager.ActionHolder import ActionHolder
 from src.backend.DeckManagement.InputIdentifier import Input
 from src.backend.PluginManager.ActionInputSupport import ActionInputSupport
+from .multi_request import MultiRequest
 
 # Import gtk modules
 import gi
@@ -31,7 +32,7 @@ from src.backend.PageManagement.Page import Page
 class PostRequest(ActionBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
     def on_ready(self):
         self.set_media(media_path=os.path.join(self.plugin_base.PATH, "assets", "http.png"), size=0.9)
 
@@ -46,12 +47,12 @@ class PostRequest(ActionBase):
         self.json_entry.connect("notify::text", self.on_json_changed)
 
         return [self.url_entry, self.json_entry]
-    
+
     def on_url_changed(self, entry, *args):
         settings = self.get_settings()
         settings["url"] = entry.get_text()
         self.set_settings(settings)
-    
+
     def on_json_changed(self, entry, *args):
         settings = self.get_settings()
         settings["json"] = entry.get_text()
@@ -78,9 +79,9 @@ class PostRequest(ActionBase):
 class GetRequest(ActionBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
         self.n_ticks = 0
-        
+
     def on_ready(self):
         self.set_media(media_path=os.path.join(self.plugin_base.PATH, "assets", "http.png"), size=0.8)
 
@@ -101,7 +102,7 @@ class GetRequest(ActionBase):
         self.auto_fetch_spinner.connect("notify::value", self.on_auto_fetch_changed)
 
         return [self.url_entry, self.headers_entry, self.keys_entry, self.auto_fetch_spinner]
-    
+
     def on_url_changed(self, entry, *args):
         settings = self.get_settings()
         settings["url"] = entry.get_text()
@@ -162,22 +163,20 @@ class GetRequest(ActionBase):
             j = j.get(key)
 
         return j
-    
+
     def get_custom_config_area(self):
         return Gtk.Label(label="Separate keys with a period (example: key1.key2.key3)")
-    
+
     def on_tick(self):
         auto_fetch = self.get_settings().get("auto_fetch", 0)
         if auto_fetch <= 0:
             self.n_ticks = 0
             return
-        
+
         if self.n_ticks % auto_fetch == 0:
             self.on_key_down()
             self.n_ticks = 0
         self.n_ticks += 1
-        
-
 
 
 class RequestsPlugin(PluginBase):
@@ -216,6 +215,20 @@ class RequestsPlugin(PluginBase):
             }
         )
         self.add_action_holder(self.get_request_holder)
+
+        self.multi_request_holder = ActionHolder(
+            plugin_base=self,
+            action_base=MultiRequest,
+            action_id_suffix="MultiRequest",
+            action_name="Multi Request",
+            icon=Gtk.Picture.new_for_filename(os.path.join(self.PATH, "assets", "http.png")),
+            action_support={
+                Input.Key: ActionInputSupport.SUPPORTED,
+                Input.Dial: ActionInputSupport.SUPPORTED,
+                Input.Touchscreen: ActionInputSupport.UNTESTED
+            }
+        )
+        self.add_action_holder(self.multi_request_holder)
 
         # Register plugin
         self.register(
