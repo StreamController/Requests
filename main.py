@@ -76,6 +76,9 @@ class PostRequest(ActionBase):
             self.show_error(duration=2)
 
 class GetRequest(ActionBase):
+    LABEL_POSITIONS = ["top", "center", "bottom"]
+    DEFAULT_LABEL_POSITION = "center"
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
@@ -91,6 +94,11 @@ class GetRequest(ActionBase):
         self.auto_fetch_spinner = Adw.SpinRow.new_with_range(step=1, min=0, max=3600)
         self.auto_fetch_spinner.set_title("Auto Fetch (s)")
         self.auto_fetch_spinner.set_subtitle("0 to disable")
+        self.label_position_row = Adw.ComboRow(
+            title="Label Position",
+            subtitle="The action needs label control for this position",
+            model=Gtk.StringList.new([position.capitalize() for position in self.LABEL_POSITIONS])
+        )
 
         self.load_config_defaults()
 
@@ -99,8 +107,9 @@ class GetRequest(ActionBase):
         self.headers_entry.connect("notify::text", self.on_headers_changed)
         self.keys_entry.connect("notify::text", self.on_keys_changed)
         self.auto_fetch_spinner.connect("notify::value", self.on_auto_fetch_changed)
+        self.label_position_row.connect("notify::selected", self.on_label_position_changed)
 
-        return [self.url_entry, self.headers_entry, self.keys_entry, self.auto_fetch_spinner]
+        return [self.url_entry, self.headers_entry, self.keys_entry, self.auto_fetch_spinner, self.label_position_row]
     
     def on_url_changed(self, entry, *args):
         settings = self.get_settings()
@@ -122,12 +131,32 @@ class GetRequest(ActionBase):
         settings["auto_fetch"] = spinner.get_value()
         self.set_settings(settings)
 
+    def on_label_position_changed(self, row, *args):
+        settings = self.get_settings()
+        old_position = self.get_label_position()
+        new_position = self.LABEL_POSITIONS[row.get_selected()]
+        if new_position == old_position:
+            return
+
+        settings["label_position"] = new_position
+        self.set_settings(settings)
+
+        # Move the current value instead of leaving a stale copy behind
+        value = self.labels.get(old_position, {}).get("text")
+        self.set_label(text=None, position=old_position)
+        self.set_label(text=value, position=new_position)
+
+    def get_label_position(self) -> str:
+        position = self.get_settings().get("label_position")
+        return position if position in self.LABEL_POSITIONS else self.DEFAULT_LABEL_POSITION
+
     def load_config_defaults(self):
         settings = self.get_settings()
         self.url_entry.set_text(settings.get("url", "")) # Does not accept None
         self.headers_entry.set_text(settings.get("headers", "{}"))
         self.keys_entry.set_text(settings.get("keys", "")) # Does not accept None
         self.auto_fetch_spinner.set_value(settings.get("auto_fetch", 0))
+        self.label_position_row.set_selected(self.LABEL_POSITIONS.index(self.get_label_position()))
 
     def on_key_down(self):
         threading.Thread(target=self._on_key_down, daemon=True, name="get_request").start()
@@ -150,7 +179,7 @@ class GetRequest(ActionBase):
                 self.show_error(duration=1)
             if j is not None:
                 value = self.get_value(j, self.get_settings().get("keys", ""))
-                self.set_center_label(text=str(value))
+                self.set_label(text=str(value), position=self.get_label_position())
         except Exception as e:
             log.error(e)
             self.show_error(duration=1)
